@@ -1,0 +1,75 @@
+#/* $begin to_binary_string-ys */
+##################################################################
+# to_binary_string.ys - Convert an arr block of len integers to 
+# binary strings and store in buff
+# Return the sum of integers contained in arr.
+# Code by Aneliya Abdimalik
+# StudentID=2547651
+# Describe how and why you modified the baseline code.
+##################################################################
+# Do not modify this portion
+# Function prologue.
+# %rdi = arr, %rsi = buff, %rdx = len
+to_binary_string:
+##################################################################
+# You can modify this portion
+    # Loop header
+    xorq %rax,%rax           # sum = 0;
+    # Removed redundant initialization of pow here.
+    irmovq $48, %r13
+    irmovq $49, %r14
+    irmovq $8, %r12
+    andq %rdx,%rdx           # len <= 0?
+    jle Done                # if so, goto Done:
+Loop:    
+    # Removed redundant load of 8; preloaded in %r12.
+    mrmovq (%rdi), %r9      # read val from arr...
+    # Removed; replaced with preloaded %r12.
+    addq %r12, %rdi
+    addq %r9, %rax          # sum += val
+    rrmovq %rsi, %r10       # temp = buff
+    irmovq $128, %rcx       # pow = 128
+inner_loop:
+    andq %rcx,%rcx           # pow <= 0?
+    jg compare_upd
+    # Removed redundant copy of pow to %r8.
+    # Removed redundant subtraction for comparison.
+    jmp updates
+
+otw:   
+    # Removed redundant load of ASCII '0'; replaced with %r13.
+    # Removed; replaced with preloaded %r13.
+    rmmovq %r13, (%r10)
+inner_updates:  
+    irmovq $1, %r8
+    addq %r8, %r10         # temp++
+    xorq %r11, %r11    # Added to substitute whole process of pow>>=1     
+right_shift:
+    # Removed redundant copy of %r8.
+    # Removed redundant subtraction for condition check.
+    cmpq %rcx, %r8
+    jne shift_util
+    rrmovq %r11, %rcx
+    jmp inner_loop
+shift_util: #This part was added to update the power value by shifting it like dividing it by 2. 
+#It’s a replacement for the usual bit-shifting (pow >>= 1) and makes sure the program handles the power updates correctly.   
+    rrmovq %r8, %r11
+    addq %r8, %r8
+    jmp right_shift  
+updates:
+    irmovq $1, %r8
+    subq %r8, %rdx           # len--
+    # Removed redundant load of 8; replaced with %r12.
+    # Removed; replaced with preloaded %r12.
+    addq %r12, %rsi
+    andq %rdx,%rdx           # len > 0?
+    jg Loop                 # if so, goto Loop
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+    ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end to_binary_string-ys */

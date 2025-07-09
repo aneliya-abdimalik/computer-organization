@@ -1,0 +1,111 @@
+/* Code by Aneliya Abdimalik */
+/* Student ID: 2547651 */
+
+.pos 0x0
+    irmovq stack, %rsp          /* Setting up the stack pointer */
+    irmovq head, %rdi           /* Getting the address of the list's head */
+    call selection_sort_it      /* Calling the iterative selection sort function */
+    halt                        /* Ending the program */
+
+/* The linked list nodes with predefined values for testing and debugging */
+.pos 0x200
+head:
+    .quad 17
+    .quad node1
+node1:
+    .quad 24
+    .quad node2
+node2:
+    .quad 6
+    .quad node3
+node3:
+    .quad 11
+    .quad node4
+node4:
+    .quad 4
+    .quad node5
+node5:
+    .quad 5
+    .quad node6
+node6:
+    .quad 3
+    .quad node7
+node7:
+    .quad 40
+    .quad node8
+node8:
+    .quad 19
+    .quad node9
+node9:
+    .quad 52
+    .quad node10
+node10:
+    .quad 8
+    .quad 0  /* NULL indicates the end of the list */
+
+selection_sort_it:
+    /* Checking if the list is empty or has only one node */
+    rrmovq %rdi, %r8
+    mrmovq 8(%rdi), %rcx        /* Loading head->next */
+    andq %rcx, %rcx             /* If head->next is NULL */
+    je done                     /* No need to sort, exit */
+
+    irmovq $0, %r8              /* Initialize sorted as NULL */
+
+loop_execution:
+    /* Verify if the unsorted list is empty */
+    andq %rdi, %rdi             /* If head is NULL */
+    je done                     /* Sorting is complete */
+
+    /* Prepare to find the largest value in the list */
+    rrmovq %rdi, %r9            /* max starts as head */
+    irmovq $0, %r10             /* prevMax is initially NULL */
+    rrmovq %rdi, %r11           /* curr starts as head */
+    irmovq $0, %r12             /* prev is also NULL */
+
+find_max:
+    /* Traverse the list to find the largest node */
+    andq %r11, %r11             /* Is curr NULL? */
+    je remove_max               /* If so, we found the max */
+
+    mrmovq 0(%r11), %r14        /* Load curr->data */
+    mrmovq 0(%r9), %rbx         /* Load max->data */
+    subq %r14, %rbx             /* Compare curr->data with max->data */
+    jge proceed_next_node       /* Move on if curr->data <= max->data */
+
+    /* Update max and prevMax if a larger value is found */
+    rrmovq %r11, %r9            /* max becomes curr */
+    rrmovq %r12, %r10           /* prevMax becomes prev */
+
+proceed_next_node:
+    rrmovq %r11, %r12           /* Move prev to curr */
+    mrmovq 8(%r11), %r11        /* Move curr to curr->next */
+    jmp find_max                /* Keep searching for max */
+
+remove_max:
+    /* Remove the max node from the unsorted list */
+    rrmovq %r9, %r14
+    subq %rdi, %r14           /* Is max the head? */
+    je set_head               /* If yes, update head */
+
+    /* Adjust the list to skip max */
+    mrmovq 8(%r9), %rbx         /* Load max->next */
+    rmmovq %rbx, 8(%r10)        /* Set prevMax->next = max->next */
+    jmp move_max                /* Move max to the sorted list */
+
+set_head:
+    mrmovq 8(%r9), %rdi         /* Set head to head->next */
+
+move_max:
+    /* Add the max node to the front of the sorted list */
+    rmmovq %r8, 8(%r9)          /* Connect max->next to sorted */
+    rrmovq %r9, %r8             /* Update sorted to include max */
+    jmp loop_execution          /* Repeat for the remaining list */
+
+done:
+    rrmovq %r8, %rax            /* Return the head of the sorted list */
+    ret                         /* End the function */
+
+.pos 0x800
+stack:
+
